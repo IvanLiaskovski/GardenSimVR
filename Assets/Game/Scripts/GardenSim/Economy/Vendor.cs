@@ -1,0 +1,71 @@
+using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+
+namespace GardenSim
+{
+    /// <summary>
+    /// A merchant the player interacts with to open a shop. Attach to (or alongside) an
+    /// <see cref="XRBaseInteractable"/> used as the "Trade" trigger — poking or grabbing it toggles the
+    /// <see cref="ShopPanelUI"/>. Optionally auto-closes when the player walks away.
+    /// </summary>
+    public class Vendor : MonoBehaviour
+    {
+        [SerializeField] private ShopCatalog catalog;
+        [SerializeField] private ShopPanelUI shopPanel;
+
+        [Tooltip("Interactable the player pokes/grabs to toggle the shop. If empty, looks on this object.")]
+        [SerializeField] private XRBaseInteractable tradeInteractable;
+
+        [Tooltip("Close the shop when the player gets further than this from the vendor. 0 = never auto-close.")]
+        [SerializeField] private float autoCloseDistance = 0f;
+
+        private Transform _player;
+
+        private void Awake()
+        {
+            if (tradeInteractable == null) tradeInteractable = GetComponent<XRBaseInteractable>();
+        }
+
+        private void OnEnable()
+        {
+            if (tradeInteractable != null) tradeInteractable.selectEntered.AddListener(OnTradeSelected);
+        }
+
+        private void OnDisable()
+        {
+            if (tradeInteractable != null) tradeInteractable.selectEntered.RemoveListener(OnTradeSelected);
+        }
+
+        private void Start()
+        {
+            if (shopPanel != null)
+            {
+                shopPanel.Bind(catalog);
+                shopPanel.Close();
+            }
+
+            var cam = Camera.main;
+            if (cam != null) _player = cam.transform;
+        }
+
+        private void Update()
+        {
+            if (autoCloseDistance <= 0f || shopPanel == null || !shopPanel.IsOpen || _player == null)
+                return;
+
+            if (Vector3.Distance(_player.position, transform.position) > autoCloseDistance)
+                shopPanel.Close();
+        }
+
+        private void OnTradeSelected(SelectEnterEventArgs _) => Toggle();
+
+        /// <summary>Open the shop if closed, close it if open. Also hookable from UnityEvents/buttons.</summary>
+        public void Toggle()
+        {
+            if (shopPanel == null) return;
+            if (shopPanel.IsOpen) shopPanel.Close();
+            else shopPanel.Open();
+        }
+    }
+}
