@@ -2,13 +2,27 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+[System.Serializable]
+public class GrowthCondition
+{
+    public string name;
+    public bool isCommited;
+}
+
+[System.Serializable]
+public class GrowthStage
+{
+    public GameObject prefab;
+    public int growthTime;
+
+    public GrowthCondition[] contitions;
+
+    public Color stageColor = Color.white;
+}
 public class PlantGrowth : MonoBehaviour
 {
     [Header("Growth Prefabs")]
-    [SerializeField] private GameObject[] growthStagePrefabs;
-
-    [Header("Timing")]
-    [SerializeField] private float timePerStage = 10f;
+    [SerializeField] private GrowthStage[] growthStages;
 
     [Header("Animation")]
     [SerializeField] private float transitionDuration = 0.7f;
@@ -16,6 +30,8 @@ public class PlantGrowth : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private Image progressCircle;
+
+
 
     private int currentStage;
     private GameObject currentPlantInstance;
@@ -28,29 +44,38 @@ public class PlantGrowth : MonoBehaviour
 
     private void SpawnInitialStage()
     {
-        currentPlantInstance = Instantiate(
-            growthStagePrefabs[0],
-            transform.position,
-            transform.rotation,
-            transform
-        );
+        if (growthStages[0].prefab != null)
+        {
+            currentPlantInstance = Instantiate(
+                growthStages[0].prefab,
+                transform.position,
+                transform.rotation,
+                transform
+            );
+        }
     }
 
     private IEnumerator GrowPlant()
     {
-        while (currentStage < growthStagePrefabs.Length - 1)
+        while (currentStage < growthStages.Length - 1)
         {
-            float timer = 0f;
+            // Wait until all conditions are fulfilled
+            yield return new WaitUntil(() =>
+    AreGrowthConditionsMet(growthStages[currentStage]));
 
-            while (timer < timePerStage)
+            float timer = 0f;
+            progressCircle.color = growthStages[currentStage].stageColor;
+
+            while (timer < growthStages[currentStage].growthTime)
             {
                 timer += Time.deltaTime;
 
                 if (progressCircle != null)
-                    progressCircle.fillAmount = timer / timePerStage;
+                    progressCircle.fillAmount = timer / growthStages[currentStage].growthTime;
 
                 yield return null;
             }
+
 
             yield return StartCoroutine(TransitionToNextStage());
 
@@ -65,10 +90,21 @@ public class PlantGrowth : MonoBehaviour
 
         currentStage++;
 
+        if (currentStage == 1)
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+
+            rb.isKinematic = true;
+            rb.detectCollisions = false;
+            GetComponent<Collider>().enabled = false;
+        }
+
+
+
         Vector3 spawnPos = transform.position + Vector3.down * undergroundOffset;
 
         GameObject newPlant = Instantiate(
-            growthStagePrefabs[currentStage],
+            growthStages[currentStage].prefab,
             spawnPos,
             transform.rotation,
             transform
@@ -79,6 +115,11 @@ public class PlantGrowth : MonoBehaviour
 
         Vector3 newStartPos = newPlant.transform.position;
         Vector3 newEndPos = transform.position;
+
+        BoxCollider newPlantBoxCollider = newPlant.GetComponent<BoxCollider>();
+
+        if (newPlantBoxCollider)
+            newPlantBoxCollider.enabled = false;
 
         float t = 0f;
 
@@ -102,6 +143,30 @@ public class PlantGrowth : MonoBehaviour
 
         Destroy(oldPlant);
 
+        if (newPlantBoxCollider)
+            newPlantBoxCollider.enabled = true;
+
         currentPlantInstance = newPlant;
+    }
+
+    private bool AreGrowthConditionsMet(GrowthStage stage)
+    {
+
+        if (stage.contitions == null || stage.contitions.Length == 0)
+            return true;
+
+        foreach (GrowthCondition condition in stage.contitions)
+        {
+            if (!condition.isCommited)
+                return false;
+        }
+
+        return true;
+    }
+
+    public void TakeOut()
+    {
+        currentStage = growthStages.Length;
+        StopCoroutine(TransitionToNextStage());
     }
 }
