@@ -17,6 +17,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: b4bc98d017fd4d54291bf9a0f43116ed, type: 3}
   buyPrice: 15
   sellPrice: 8
-  canBuy: 1
+  canBuy: 0
   canSell: 1
   worldPrefab: {fileID: 4535114286441674993, guid: d86dd6a70e2a33d47b8578556dfd25a3, type: 3}

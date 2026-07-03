@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a995b6f0af6e9b419711e9f3d305ee1, type: 3}
-  m_Name: Tomato
+  m_Name: TomatoSeed
   m_EditorClassIdentifier: 
-  id: tomato
-  displayName: Tomato
-  icon: {fileID: 21300000, guid: 7fc56720c8af6a44b93b176ebb77286c, type: 3}
-  buyPrice: 20
-  sellPrice: 12
-  canBuy: 0
-  canSell: 1
-  worldPrefab: {fileID: 5723039273830274493, guid: fa02f87ca6c101c42b53aca6d3620c6a, type: 3}
+  id: tomato_seed
+  displayName: Tomato Seeds
+  icon: {fileID: 21300000, guid: 3f95604f06220a445a8105760f5627b0, type: 3}
+  buyPrice: 10
+  sellPrice: 0
+  canBuy: 1
+  canSell: 0
+  worldPrefab: {fileID: 5750788496072694849, guid: 5710c7b6bc519ce409db25a9f0f336a3, type: 3}

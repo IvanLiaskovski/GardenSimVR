@@ -19,6 +19,7 @@ namespace GardenSim
 
         private readonly List<ShopRowUI> _rows = new List<ShopRowUI>();
         private ShopCatalog _catalog;
+        private Vendor _vendor;
         private bool _subscribed;
 
         public bool IsOpen => root != null && root.activeSelf;
@@ -29,9 +30,10 @@ namespace GardenSim
         }
 
         /// <summary>Rebuilds the rows for the given catalog. Called by the vendor on start.</summary>
-        public void Bind(ShopCatalog catalog)
+        public void Bind(ShopCatalog catalog, Vendor vendor = null)
         {
             _catalog = catalog;
+            _vendor = vendor;
             if (inventory == null) inventory = Inventory.Instance;
             BuildRows();
         }
@@ -68,7 +70,13 @@ namespace GardenSim
             }
         }
 
-        private void OnBuy(ItemDefinition item) => inventory?.Buy(item);
+        private void OnBuy(ItemDefinition item)
+        {
+            // Prefer the vendor path so purchases can materialize on the counter.
+            if (_vendor != null) _vendor.TryPurchase(item);
+            else inventory?.Buy(item);
+        }
+
         private void OnSell(ItemDefinition item) => inventory?.Sell(item);
 
         private void RefreshRows()

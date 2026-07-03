@@ -17,6 +17,9 @@ namespace GardenSim
         [Tooltip("Interactable the player pokes/grabs to toggle the shop. If empty, looks on this object.")]
         [SerializeField] private XRBaseInteractable tradeInteractable;
 
+        [Tooltip("Where purchased goods (seeds) physically appear. If empty, purchases go straight to the inventory.")]
+        [SerializeField] private Transform purchaseSpawnPoint;
+
         [Tooltip("Close the shop when the player gets further than this from the vendor. 0 = never auto-close.")]
         [SerializeField] private float autoCloseDistance = 0f;
 
@@ -41,7 +44,7 @@ namespace GardenSim
         {
             if (shopPanel != null)
             {
-                shopPanel.Bind(catalog);
+                shopPanel.Bind(catalog, this);
                 shopPanel.Close();
             }
 
@@ -66,6 +69,27 @@ namespace GardenSim
             if (shopPanel == null) return;
             if (shopPanel.IsOpen) shopPanel.Close();
             else shopPanel.Open();
+        }
+
+        /// <summary>
+        /// Buys one unit of the item. When the item has a physical prefab and this vendor has a
+        /// purchase spawn point, the goods appear on the counter for the player to pick up instead of
+        /// being added to the inventory directly (seeds collect themselves on grab).
+        /// </summary>
+        public bool TryPurchase(ItemDefinition item)
+        {
+            var inventory = Inventory.Instance;
+            if (item == null || !item.canBuy || inventory == null) return false;
+
+            if (item.worldPrefab != null && purchaseSpawnPoint != null)
+            {
+                if (!inventory.TrySpend(item.buyPrice)) return false;
+                Vector3 jitter = new Vector3(Random.Range(-0.15f, 0.15f), 0.05f, Random.Range(-0.08f, 0.08f));
+                Instantiate(item.worldPrefab, purchaseSpawnPoint.position + jitter, Quaternion.identity);
+                return true;
+            }
+
+            return inventory.Buy(item);
         }
     }
 }
