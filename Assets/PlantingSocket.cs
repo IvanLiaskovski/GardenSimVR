@@ -29,6 +29,10 @@ public class PlantingSocket : MonoBehaviour
 
         Transform seed = args.interactableObject.transform;
 
+        PlantGrowth plant = args.interactableObject.transform.GetComponent<PlantGrowth>();
+
+        plant.SetConditionCommitted("planted");
+
         Collider socketCollider = GetComponent<Collider>();
 
         // top of the box in world space

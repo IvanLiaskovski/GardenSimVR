@@ -46,12 +46,19 @@ public class PlantGrowth : MonoBehaviour
     {
         if (growthStages[0].prefab != null)
         {
-            currentPlantInstance = Instantiate(
-                growthStages[0].prefab,
-                transform.position,
-                transform.rotation,
-                transform
+            Collider col = GetComponent<Collider>();
+            Vector3 spawnPos = new Vector3(
+                col.bounds.center.x,
+                col.bounds.max.y,
+                col.bounds.center.z
             );
+
+            currentPlantInstance = Instantiate(
+               growthStages[0].prefab,
+               spawnPos,
+               transform.rotation,
+               transform
+           );
         }
     }
 
@@ -76,7 +83,7 @@ public class PlantGrowth : MonoBehaviour
                 yield return null;
             }
 
-
+            progressCircle.fillAmount = 0f;
             yield return StartCoroutine(TransitionToNextStage());
 
             if (progressCircle != null)
@@ -93,33 +100,42 @@ public class PlantGrowth : MonoBehaviour
         if (currentStage == 1)
         {
             Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.detectCollisions = false;
+            }
 
-            rb.isKinematic = true;
-            rb.detectCollisions = false;
-            GetComponent<Collider>().enabled = false;
+            // Collider parentCollider = GetComponent<Collider>();
+            // if (parentCollider != null)
+            //     parentCollider.enabled = false;
         }
 
+        Collider col = GetComponent<Collider>();
 
+        // Position at the top of the socket/collider
+        Vector3 topPos = new Vector3(
+            col.bounds.center.x,
+            col.bounds.max.y,
+            col.bounds.center.z
+        );
 
-        Vector3 spawnPos = transform.position + Vector3.down * undergroundOffset;
+        // Start slightly below the surface
+        Vector3 spawnPos = topPos + Vector3.down * undergroundOffset;
 
         GameObject newPlant = Instantiate(
             growthStages[currentStage].prefab,
             spawnPos,
-            transform.rotation,
+            Quaternion.identity,
             transform
         );
 
+        BoxCollider newPlantBoxCollider = newPlant.GetComponent<BoxCollider>();
+        if (newPlantBoxCollider != null)
+            newPlantBoxCollider.enabled = false;
+
         Vector3 oldStartPos = oldPlant.transform.position;
         Vector3 oldEndPos = oldStartPos + Vector3.down * undergroundOffset;
-
-        Vector3 newStartPos = newPlant.transform.position;
-        Vector3 newEndPos = transform.position;
-
-        BoxCollider newPlantBoxCollider = newPlant.GetComponent<BoxCollider>();
-
-        if (newPlantBoxCollider)
-            newPlantBoxCollider.enabled = false;
 
         float t = 0f;
 
@@ -127,23 +143,21 @@ public class PlantGrowth : MonoBehaviour
         {
             t += Time.deltaTime;
 
-            float normalized = t / transitionDuration;
+            float eased = Mathf.SmoothStep(0f, 1f, t / transitionDuration);
 
-            // Smooth easing
-            float eased = Mathf.SmoothStep(0f, 1f, normalized);
-
-            oldPlant.transform.position =
-                Vector3.Lerp(oldStartPos, oldEndPos, eased);
-
-            newPlant.transform.position =
-                Vector3.Lerp(newStartPos, newEndPos, eased);
+            oldPlant.transform.position = Vector3.Lerp(oldStartPos, oldEndPos, eased);
+            newPlant.transform.position = Vector3.Lerp(spawnPos, topPos, eased);
 
             yield return null;
         }
 
+        // Ensure exact final positions
+        oldPlant.transform.position = oldEndPos;
+        newPlant.transform.position = topPos;
+
         Destroy(oldPlant);
 
-        if (newPlantBoxCollider)
+        if (newPlantBoxCollider != null)
             newPlantBoxCollider.enabled = true;
 
         currentPlantInstance = newPlant;
@@ -168,5 +182,18 @@ public class PlantGrowth : MonoBehaviour
     {
         currentStage = growthStages.Length;
         StopCoroutine(TransitionToNextStage());
+    }
+
+    public void SetConditionCommitted(string targetName)
+    {
+        GrowthCondition[] conditions = growthStages[currentStage].contitions;
+
+        for (int i = 0; i < conditions.Length; i++)
+        {
+            if (conditions[i].name == targetName)
+            {
+                conditions[i].isCommited = true;
+            }
+        }
     }
 }
