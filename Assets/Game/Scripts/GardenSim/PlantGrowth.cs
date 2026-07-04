@@ -36,6 +36,12 @@ public class PlantGrowth : MonoBehaviour
     private int currentStage;
     private GameObject currentPlantInstance;
 
+    /// <summary>The currently active growth-stage instance (read-only; used by pest/infestation hooks).</summary>
+    public GameObject CurrentPlantInstance => currentPlantInstance;
+
+    /// <summary>True once the plant has reached its final configured stage (growth coroutine finished).</summary>
+    public bool HasFinishedGrowing => currentStage >= growthStages.Length - 1;
+
     private void Start()
     {
         SpawnInitialStage();
