@@ -6,7 +6,9 @@ public class PlantingSocket : MonoBehaviour
 {
     private XRSocketInteractor socket;
 
-    [SerializeField] private PlantGrowth plantPrefab;
+    private PlantGrowth currentPlant;
+
+    [SerializeField] private Collider solidCollider;
 
     private void Awake()
     {
@@ -30,7 +32,7 @@ public class PlantingSocket : MonoBehaviour
         Transform seed = args.interactableObject.transform;
 
         PlantGrowth plant = args.interactableObject.transform.GetComponent<PlantGrowth>();
-
+        currentPlant = plant;
         plant.SetConditionCommitted("planted");
 
         Collider socketCollider = GetComponent<Collider>();
@@ -48,5 +50,15 @@ public class PlantingSocket : MonoBehaviour
             targetPos,
             transform.rotation
         );
+    }
+
+    private void OnParticleCollision(GameObject other)
+    {
+
+
+        Debug.Log("Plant Watered!");
+        currentPlant.SetConditionCommitted("watered");
+        solidCollider.enabled = false;
+        //currentPlant.SetConditionCommitted("watered");
     }
 }
