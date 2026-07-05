@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace GardenSim
@@ -25,6 +26,9 @@ namespace GardenSim
         private void Awake()
         {
             _volume = GetComponent<BoxCollider>();
+
+            var button = GetComponentInChildren<Button>(true);
+            if (button != null) button.onClick.AddListener(DepositAll);
         }
 
         private void Reset()

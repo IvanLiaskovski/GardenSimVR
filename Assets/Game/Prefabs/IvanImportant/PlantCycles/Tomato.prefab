@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5530241898888030776}
   - component: {fileID: 105298355214143451}
   - component: {fileID: 7429948369121853020}
+  - component: {fileID: 6213051228978980411}
   m_Layer: 0
   m_Name: Tomato
   m_TagString: Untagged
@@ -274,6 +275,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.2, y: 0.088382125, z: 0.24}
   m_Center: {x: 0, y: 0.2, z: 0}
+--- !u!114 &6213051228978980411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1761843866937706126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0de1f23ca5f03743bd10d371243aa2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  checkInterval: 4
+  chancePerCheck: 0.15
+  timeToDeath: 12
+  deadPrefab: {fileID: 8090426861852930828, guid: cb568d50b84e5b64b9e057c24e44939e, type: 3}
+  bugSwarmPrefab: {fileID: 6164959587645311686, guid: eace86b2a083cd9428cb8c728d486141, type: 3}
+  swarmHeightOffset: 0.85
 --- !u!1 &2919961447416225195
 GameObject:
   m_ObjectHideFlags: 0

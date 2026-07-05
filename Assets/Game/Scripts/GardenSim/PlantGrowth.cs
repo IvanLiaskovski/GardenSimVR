@@ -35,9 +35,13 @@ public class PlantGrowth : MonoBehaviour
 
     private int currentStage;
     private GameObject currentPlantInstance;
+    private Coroutine growCoroutine;
 
     /// <summary>The currently active growth-stage instance (read-only; used by pest/infestation hooks).</summary>
     public GameObject CurrentPlantInstance => currentPlantInstance;
+
+    /// <summary>Index of the current growth stage (read-only; used by pest/infestation hooks).</summary>
+    public int CurrentStageIndex => currentStage;
 
     /// <summary>True once the plant has reached its final configured stage (growth coroutine finished).</summary>
     public bool HasFinishedGrowing => currentStage >= growthStages.Length - 1;
@@ -45,7 +49,7 @@ public class PlantGrowth : MonoBehaviour
     private void Start()
     {
         SpawnInitialStage();
-        StartCoroutine(GrowPlant());
+        growCoroutine = StartCoroutine(GrowPlant());
     }
 
     private void SpawnInitialStage()
@@ -140,6 +144,26 @@ public class PlantGrowth : MonoBehaviour
         if (newPlantBoxCollider != null)
             newPlantBoxCollider.enabled = false;
 
+        // Freeze physics on both stage instances while their position is driven by script below.
+        // Otherwise gravity keeps accumulating velocity on the non-kinematic Rigidbody underneath
+        // the scripted position, and the moment the animation lets go the plant lurches/sinks into
+        // the ground instead of resting on it.
+        Rigidbody oldPlantRb = oldPlant.GetComponent<Rigidbody>();
+        if (oldPlantRb != null)
+        {
+            oldPlantRb.velocity = Vector3.zero;
+            oldPlantRb.angularVelocity = Vector3.zero;
+            oldPlantRb.isKinematic = true;
+        }
+
+        Rigidbody newPlantRb = newPlant.GetComponent<Rigidbody>();
+        if (newPlantRb != null)
+        {
+            newPlantRb.velocity = Vector3.zero;
+            newPlantRb.angularVelocity = Vector3.zero;
+            newPlantRb.isKinematic = true;
+        }
+
         Vector3 oldStartPos = oldPlant.transform.position;
         Vector3 oldEndPos = oldStartPos + Vector3.down * undergroundOffset;
 
@@ -166,6 +190,12 @@ public class PlantGrowth : MonoBehaviour
         if (newPlantBoxCollider != null)
             newPlantBoxCollider.enabled = true;
 
+        // Deliberately left kinematic: this stage instance stays parented under this (also
+        // kinematic, non-colliding) PlantGrowth root until it's harvested. A non-kinematic
+        // Rigidbody nested under another Rigidbody's hierarchy is not something Unity's physics
+        // supports properly — it stops colliding with the environment and free-falls forever.
+        // PlantStageGrab.OnGrabbed() unparents the object AND flips this back to non-kinematic,
+        // which is the point it actually needs physics (being carried/dropped by the player).
         currentPlantInstance = newPlant;
     }
 
@@ -186,8 +216,16 @@ public class PlantGrowth : MonoBehaviour
 
     public void TakeOut()
     {
-        currentStage = growthStages.Length;
-        StopCoroutine(TransitionToNextStage());
+        // Stop the actual running coroutine (StopCoroutine(TransitionToNextStage()) previously just
+        // built and stopped a brand-new, never-started enumerator - a no-op - so GrowPlant() kept
+        // running and could still tick growthStages[currentStage] this same frame, before the
+        // deferred Destroy() from PlantStageGrab actually took effect, indexing past the array once
+        // currentStage was bumped below).
+        if (growCoroutine != null) StopCoroutine(growCoroutine);
+
+        // Valid last index, not one past it - keeps HasFinishedGrowing true without ever risking an
+        // out-of-bounds read if anything still queries growthStages[currentStage] afterwards.
+        currentStage = growthStages.Length - 1;
     }
 
     public void SetConditionCommitted(string targetName)
