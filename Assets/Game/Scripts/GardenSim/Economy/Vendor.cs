@@ -23,6 +23,9 @@ namespace GardenSim
         [Tooltip("Close the shop when the player gets further than this from the vendor. 0 = never auto-close.")]
         [SerializeField] private float autoCloseDistance = 0f;
 
+        [Tooltip("Optional voice line played each time the player opens the shop.")]
+        [SerializeField] private AudioSource interactSound;
+
         private Transform _player;
 
         private void Awake()
@@ -67,8 +70,15 @@ namespace GardenSim
         public void Toggle()
         {
             if (shopPanel == null) return;
-            if (shopPanel.IsOpen) shopPanel.Close();
-            else shopPanel.Open();
+            if (shopPanel.IsOpen)
+            {
+                shopPanel.Close();
+            }
+            else
+            {
+                shopPanel.Open();
+                if (interactSound != null) interactSound.Play();
+            }
         }
 
         /// <summary>

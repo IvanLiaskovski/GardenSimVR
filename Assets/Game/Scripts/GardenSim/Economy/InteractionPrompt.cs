@@ -12,7 +12,7 @@ namespace GardenSim
     /// </summary>
     public class InteractionPrompt : MonoBehaviour
     {
-        public enum Mode { OnHover, WhileHoldingProduce, Always }
+        public enum Mode { OnHover, WhileHoldingProduce, WhileHoldingSeed, Always, HoverWithSeedInInventory }
 
         [SerializeField] private Mode mode = Mode.OnHover;
 
@@ -30,6 +30,7 @@ namespace GardenSim
         [SerializeField] private bool faceCamera = true;
 
         private Transform _cam;
+        private bool _hovering;
 
         private void Awake()
         {
@@ -40,7 +41,7 @@ namespace GardenSim
 
         private void OnEnable()
         {
-            if (mode == Mode.OnHover && interactable != null)
+            if ((mode == Mode.OnHover || mode == Mode.HoverWithSeedInInventory) && interactable != null)
             {
                 interactable.hoverEntered.AddListener(OnHoverEntered);
                 interactable.hoverExited.AddListener(OnHoverExited);
@@ -49,20 +50,33 @@ namespace GardenSim
 
         private void OnDisable()
         {
-            if (mode == Mode.OnHover && interactable != null)
+            if ((mode == Mode.OnHover || mode == Mode.HoverWithSeedInInventory) && interactable != null)
             {
                 interactable.hoverEntered.RemoveListener(OnHoverEntered);
                 interactable.hoverExited.RemoveListener(OnHoverExited);
             }
         }
 
-        private void OnHoverEntered(HoverEnterEventArgs _) => Show(true);
-        private void OnHoverExited(HoverExitEventArgs _) => Show(false);
+        private void OnHoverEntered(HoverEnterEventArgs _)
+        {
+            _hovering = true;
+            if (mode == Mode.OnHover) Show(true);
+        }
+
+        private void OnHoverExited(HoverExitEventArgs _)
+        {
+            _hovering = false;
+            if (mode == Mode.OnHover) Show(false);
+        }
 
         private void Update()
         {
             if (mode == Mode.WhileHoldingProduce)
                 Show(AnyProduceHeld());
+            else if (mode == Mode.WhileHoldingSeed)
+                Show(AnyPlantSeedHeld());
+            else if (mode == Mode.HoverWithSeedInInventory)
+                Show(_hovering && AnySeedInInventory());
 
             if (faceCamera && label != null && label.activeSelf)
             {
@@ -84,6 +98,28 @@ namespace GardenSim
                 var g = p.GetComponent<XRGrabInteractable>();
                 if (g != null && g.isSelected) return true;
             }
+            return false;
+        }
+
+        /// <summary>True while the player holds a plantable seed (a PlantGrowth root, e.g. Carrot/
+        /// Tomato/MushroomCycle) that hasn't been placed into a GrowBox yet.</summary>
+        private static bool AnyPlantSeedHeld()
+        {
+            foreach (var p in FindObjectsOfType<PlantGrowth>())
+            {
+                var g = p.GetComponent<XRGrabInteractable>();
+                if (g != null && g.isSelected) return true;
+            }
+            return false;
+        }
+
+        /// <summary>True while the player's inventory holds at least one plantable seed item.</summary>
+        private static bool AnySeedInInventory()
+        {
+            var inventory = Inventory.Instance;
+            if (inventory == null) return false;
+            foreach (var kvp in inventory.Counts)
+                if (kvp.Key != null && kvp.Key.isSeed && kvp.Value > 0) return true;
             return false;
         }
 

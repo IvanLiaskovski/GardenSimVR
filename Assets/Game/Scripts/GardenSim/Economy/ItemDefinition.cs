@@ -23,10 +23,16 @@ namespace GardenSim
         public bool canBuy = true;
         public bool canSell = true;
 
+        [Tooltip("True for plantable seeds. Used to gate seed-specific UI, e.g. GrowBox planting hints.")]
+        public bool isSeed = false;
+
         [Header("Physical (optional)")]
         [Tooltip("Grabbable prefab that represents this item in the world. Used as an example for harvesting " +
                  "and (optionally) spawned when the item is bought.")]
         public GameObject worldPrefab;
+
+        [Tooltip("For seeds only: the PlantGrowth root prefab instantiated in a GrowBox when this seed is planted from inventory.")]
+        public GameObject plantPrefab;
 
         /// <summary>Human readable name, falling back to the asset name when blank.</summary>
         public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;

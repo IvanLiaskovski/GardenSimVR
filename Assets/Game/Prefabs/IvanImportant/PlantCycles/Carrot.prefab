@@ -191,6 +191,7 @@ GameObject:
   - component: {fileID: 7213450623017377506}
   - component: {fileID: 8282293079555477543}
   - component: {fileID: 1885227040227247080}
+  - component: {fileID: 7137868377863362138}
   m_Layer: 0
   m_Name: Carrot
   m_TagString: Untagged
@@ -447,3 +448,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.2, y: 0.088382125, z: 0.24}
   m_Center: {x: 0, y: 0.2, z: 0}
+--- !u!114 &7137868377863362138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947174381853361877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0de1f23ca5f03743bd10d371243aa2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  checkInterval: 4
+  chancePerCheck: 0.15
+  timeToDeath: 12
+  deadPrefab: {fileID: 7223896583770391365, guid: df0ab51bb2842384ca8e38b7699a7604, type: 3}
+  bugSwarmPrefab: {fileID: 6164959587645311686, guid: eace86b2a083cd9428cb8c728d486141, type: 3}
+  swarmHeightOffset: 0.3

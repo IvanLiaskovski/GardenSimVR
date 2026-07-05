@@ -19,4 +19,6 @@ MonoBehaviour:
   sellPrice: 0
   canBuy: 1
   canSell: 0
+  isSeed: 1
   worldPrefab: {fileID: 5750788496072694849, guid: 5710c7b6bc519ce409db25a9f0f336a3, type: 3}
+  plantPrefab: {fileID: 1761843866937706126, guid: 19ba4a012540d134892b08da6e32e0c8, type: 3}
